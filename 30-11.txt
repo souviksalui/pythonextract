@@ -1,0 +1,16 @@
+GS11125176
+
+GS11125175
+
+bug : for customer review with rating 4 or 5 (which gets auto active ) , its not showing in frontend (in backend its showing active) , 
+
+
+GS11125183/4 -> TI-OE-10777-C1-C2 -> test 20 coins without auto active
+
+GS11125184/2 -> IN-PA-200394	    -> test 50 coins without auto active
+
+GS11125185	IN-EL-200405	test 20 coins auto active
+
+GS11125186	TI-HL-10812	test 50 coin with auto active
+
+100531949513

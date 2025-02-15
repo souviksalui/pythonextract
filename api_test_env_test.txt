@@ -1,0 +1,358 @@
+API testing is an essential part of ensuring that your API works as expected. 
+You can test APIs in Python using libraries like requests for making HTTP requests and unittest or pytest for structuring the tests.
+Below, I will guide you through setting up a simple API test with requests and unittest.
+
+Step 1: Install the required libraries
+First, you need to install the required libraries if you haven't already:
+
+bash
+Copy code
+pip install requests
+pip install pytest
+Step 2: Write the code for testing
+Let's write a simple test case for a public API, for instance, the JSONPlaceholder API (which provides fake data for testing).
+
+Example 1: Simple API Test Using unittest
+python
+Copy code
+import unittest
+import requests
+
+class TestAPI(unittest.TestCase):
+    BASE_URL = "https://jsonplaceholder.typicode.com"
+
+    def test_get_users(self):
+        response = requests.get(f"{self.BASE_URL}/users")
+        
+        # Check if the status code is 200 (OK)
+        self.assertEqual(response.status_code, 200)
+
+        # Check if the response contains a list
+        users = response.json()
+        self.assertIsInstance(users, list)
+
+        # Check if each user has a name field
+        for user in users:
+            self.assertIn('name', user)
+
+    def test_get_single_user(self):
+        response = requests.get(f"{self.BASE_URL}/users/1")
+        
+        self.assertEqual(response.status_code, 200)
+        
+        user = response.json()
+        self.assertEqual(user['id'], 1)
+        self.assertIn('name', user)
+
+    def test_post_create_user(self):
+        new_user = {
+            "name": "John Doe",
+            "username": "johnny",
+            "email": "john.doe@example.com",
+            "address": {
+                "street": "123 Main St",
+                "suite": "Apt 1",
+                "city": "Anytown",
+                "zipcode": "12345"
+            },
+            "phone": "555-555-5555",
+            "website": "johnny.example.com"
+        }
+
+        response = requests.post(f"{self.BASE_URL}/users", json=new_user)
+
+        self.assertEqual(response.status_code, 201)  # Created
+        created_user = response.json()
+        self.assertEqual(created_user['name'], new_user['name'])
+        self.assertEqual(created_user['email'], new_user['email'])
+
+if __name__ == '__main__':
+    unittest.main()
+Explanation:
+test_get_users: Sends a GET request to retrieve a list of users and checks the status code and that the response is a list.
+test_get_single_user: Sends a GET request to retrieve a single user and verifies its content.
+test_post_create_user: Sends a POST request to create a new user and checks if the user was created correctly by comparing the response.
+Step 3: Run the test
+To run the test, you can use the following command:
+
+bash
+Copy code
+python -m unittest test_api.py
+Alternatively, if you're using pytest, you can just run:
+
+bash
+Copy code
+pytest test_api.py
+Example 2: Testing with pytest (Alternative)
+If you prefer pytest, the code would look almost identical, but without needing to create a class that inherits from unittest.TestCase. You can directly write the test functions.
+
+python
+Copy code
+import requests
+
+BASE_URL = "https://jsonplaceholder.typicode.com"
+
+def test_get_users():
+    response = requests.get(f"{BASE_URL}/users")
+    
+    assert response.status_code == 200
+    users = response.json()
+    assert isinstance(users, list)
+    
+    for user in users:
+        assert 'name' in user
+
+def test_get_single_user():
+    response = requests.get(f"{BASE_URL}/users/1")
+    
+    assert response.status_code == 200
+    user = response.json()
+    assert user['id'] == 1
+    assert 'name' in user
+
+def test_post_create_user():
+    new_user = {
+        "name": "John Doe",
+        "username": "johnny",
+        "email": "john.doe@example.com",
+        "address": {
+            "street": "123 Main St",
+            "suite": "Apt 1",
+            "city": "Anytown",
+            "zipcode": "12345"
+        },
+        "phone": "555-555-5555",
+        "website": "johnny.example.com"
+    }
+
+    response = requests.post(f"{BASE_URL}/users", json=new_user)
+    
+    assert response.status_code == 201  # Created
+    created_user = response.json()
+    assert created_user['name'] == new_user['name']
+    assert created_user['email'] == new_user['email']
+You can then run the test with:
+
+bash
+Copy code
+pytest test_api.py
+Step 4: Additional Features (Optional)
+You can expand on the tests to check for other HTTP methods like PUT and DELETE. Here's an example for updating and deleting a user:
+
+PUT Request Example (Update User)
+python
+Copy code
+def test_put_update_user():
+    updated_user = {
+        "name": "Jane Doe",
+        "username": "janedoe",
+        "email": "jane.doe@example.com",
+    }
+
+    response = requests.put(f"{BASE_URL}/users/1", json=updated_user)
+    
+    assert response.status_code == 200
+    user = response.json()
+    assert user['name'] == updated_user['name']
+    assert user['email'] == updated_user['email']
+DELETE Request Example (Delete User)
+python
+Copy code
+def test_delete_user():
+    response = requests.delete(f"{BASE_URL}/users/1")
+    
+    assert response.status_code == 200
+    assert response.json() == {}  # Usually, API returns an empty body after deletion
+Step 5: Best Practices
+Use Fixtures (in pytest): If you're doing more complex tests with setup/teardown, you can use fixtures.
+Mocking: If you're testing third-party APIs, use libraries like responses or unittest.mock to mock responses.
+Environment Variables: For sensitive data (like API keys), consider using environment variables or configuration files to store your credentials securely.
+That’s a basic guide to testing APIs in Python!
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Using environment variables to store sensitive data like API keys is a secure and common practice. This way, you avoid hardcoding sensitive information directly into your source code. Here’s an example of how to use environment variables for securely storing and accessing API keys in your Python application.
+
+Step 1: Set up Environment Variables
+1. On Linux/macOS
+You can set an environment variable directly in your terminal session like this:
+
+bash
+Copy code
+export API_KEY="your_api_key_here"
+Alternatively, you can add the variable to your shell configuration file (e.g., .bashrc, .zshrc, etc.) to make it persistent across sessions:
+
+bash
+Copy code
+echo 'export API_KEY="your_api_key_here"' >> ~/.bashrc
+source ~/.bashrc
+2. On Windows
+On Windows, you can set environment variables through the command prompt (CMD) or via the GUI:
+
+cmd
+Copy code
+setx API_KEY "your_api_key_here"
+Or, to set it temporarily in your current session:
+
+cmd
+Copy code
+set API_KEY="your_api_key_here"
+You can also add environment variables through the System Properties window:
+
+Right-click on "This PC" -> "Properties" -> "Advanced system settings"
+Click on "Environment Variables" and then add a new user or system variable.
+Step 2: Access Environment Variables in Python
+In Python, you can access environment variables using the os module.
+
+Example: Access API Key from Environment Variable
+python
+Copy code
+import os
+import requests
+
+# Get the API key from environment variable
+API_KEY = os.getenv("API_KEY")
+
+# Make sure the API key is retrieved
+if not API_KEY:
+    raise ValueError("API key not found! Please set the 'API_KEY' environment variable.")
+
+# Use the API key to make a request
+def fetch_data_from_api():
+    url = "https://api.example.com/data"
+    headers = {
+        "Authorization": f"Bearer {API_KEY}"
+    }
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        print("Data fetched successfully!")
+        return response.json()
+    else:
+        print(f"Failed to fetch data: {response.status_code}")
+        return None
+
+# Example function call
+data = fetch_data_from_api()
+Step 3: Using a .env File (Optional)
+If you want to load environment variables from a file (especially useful when working with a project that has many environment variables), you can use a .env file and a library like python-dotenv.
+
+1. Install the python-dotenv library:
+bash
+Copy code
+pip install python-dotenv
+2. Create a .env file in the root directory of your project:
+makefile
+Copy code
+# .env
+API_KEY=your_api_key_here
+3. Load the .env file in Python:
+python
+Copy code
+from dotenv import load_dotenv
+import os
+import requests
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve the API key
+API_KEY = os.getenv("API_KEY")
+
+if not API_KEY:
+    raise ValueError("API key not found! Please set the 'API_KEY' environment variable.")
+
+# Use the API key to make a request
+def fetch_data_from_api():
+    url = "https://api.example.com/data"
+    headers = {
+        "Authorization": f"Bearer {API_KEY}"
+    }
+    
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        print("Data fetched successfully!")
+        return response.json()
+    else:
+        print(f"Failed to fetch data: {response.status_code}")
+        return None
+
+# Example function call
+data = fetch_data_from_api()
+Step 4: Ignore the .env File in Version Control
+Since .env files contain sensitive information, it's a good practice to add them to .gitignore so that they are not committed to version control.
+
+Create or open a .gitignore file in your project’s root directory.
+Add .env to the .gitignore file:
+bash
+Copy code
+# .gitignore
+.env
+This ensures that the .env file is excluded from being committed to a repository.
+
+Advantages of Using Environment Variables
+Security: Sensitive data like API keys, passwords, and tokens are not hardcoded in your codebase.
+Portability: It makes your code portable between different environments (e.g., development, staging, production).
+Configuration Flexibility: You can change your environment variables without modifying the code (useful for deployment and CI/CD pipelines).
+Example: Complete API Testing with Environment Variables
+Let’s combine what we've learned so far. Imagine you're testing an API, and you need to authenticate using an API key stored in an environment variable.
+
+python
+Copy code
+import os
+import requests
+import unittest
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+class TestAPI(unittest.TestCase):
+    BASE_URL = "https://api.example.com"
+    
+    def setUp(self):
+        # Get the API key from environment variable
+        self.api_key = os.getenv("API_KEY")
+        if not self.api_key:
+            raise ValueError("API key not found! Please set the 'API_KEY' environment variable.")
+    
+    def test_get_data(self):
+        url = f"{self.BASE_URL}/data"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}"
+        }
+        
+        response = requests.get(url, headers=headers)
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsInstance(data, list)  # Assuming the data returned is a list
+
+    def test_post_data(self):
+        url = f"{self.BASE_URL}/data"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {"name": "John Doe", "email": "john.doe@example.com"}
+
+        response = requests.post(url, json=payload, headers=headers)
+
+        self.assertEqual(response.status_code, 201)  # Assuming 201 means created
+        created_data = response.json()
+        self.assertEqual(created_data['name'], payload['name'])
+        self.assertEqual(created_data['email'], payload['email'])
+
+if __name__ == '__main__':
+    unittest.main()
+This example demonstrates:
+
+How to securely manage your API keys with environment variables.
+How to load the .env file with python-dotenv.
+Using unittest to structure your API tests.
+By storing sensitive data like API keys in environment variables, you can make your code more secure, flexible, and portable. Let me know if you need further clarification!
+
+
+
